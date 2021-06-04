@@ -3,7 +3,17 @@
 Personal Notification Project built using AWS Lex, AWS dynamoDB,AWS SNS,AWS SQS and Lambda Functions. 
 
 New Proposed Architecture Diagram
+![NotificationBotV2](https://user-images.githubusercontent.com/16285362/120752021-ca7d3b80-c4bd-11eb-8aca-5cdad4fbed19.png)
 
+1) Twilio
+
+2) API Gateway SMS Endpoint
+
+3) GatewayToLex Lambda
+
+4) LexToDynamoDB Lambda
+
+5) PollingDBToSMSLambda
 
 
 Old Architecture diagram 

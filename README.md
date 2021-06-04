@@ -13,7 +13,7 @@ New Proposed Architecture Diagram
 
 4) LexToDynamoDB Lambda
 
-5) PollingDBToSMSLambda
+5/6) PollingDBToSMSLambda
 
 
 Old Architecture diagram 

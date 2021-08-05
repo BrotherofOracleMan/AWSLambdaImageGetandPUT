@@ -7,34 +7,68 @@ import logging
 
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.NOTSET)
 
 #-----My personal Helper functions --------#
 #should return 
 def buildValidationresult(result,violatedSlot, message):
     if result is False:
         return{
-            "isValid": result
-            "violatedSlot": violatedSlot
+            "isValid": result,
+            "violatedSlot": violatedSlot,
             "message": message
         }
     
     return {
-        "isValid": result
-        "violatedSlot": None
+        "isValid": result,
+        "violatedSlot": None,
         "message": message
     }
 
 
 def CheckDate(Date):
-    return True , ""
+    #Check if Date is valid
+    #Check if Date is greater than today 
+    datetime_object = None
+    if Date is not None:
+      logger.info("Validating date")
+
+    try:
+        datetime_object = isoparse(Date)
+    except ValueError:
+        logger.error("Value Error is called Date is invalid")
+        return False,"Date is Invalid. Please enter a Valid Date" 
+    
+    if datetime_object.date() < datetime.today().date():
+        logger.error("Date is in the past")
+        return False ,"Date should be before. Re enter a event date that is Today or after "
+    
+    return True,"Valid Date Given"
 
 
 def CheckTime(Date,time):
-    return True , ""
+    #Check if time is valid
+    #Check if Date is valid
+    #if both are valid compare it todays time and
+    datetime_object = None
+    try:
+        datetime_object = parse(Date + " " + time)
+        logger.info(datetime_object)
+    except ValueError:
+        logger.error("Invalid time was given. Re Enter a valid time")
+        return False, "Re-enter Valid time"
+
+    if datetime_object < datetime.today():
+        logger.error("Past time given")
+        return False, "Re-enter a time that is in the future"
+    return True, "Valid Time Given"
     
 def CheckEvent(Event):
-    return True, ""
+    logger.info("Validating Event field")
+    if Event == "":
+        return False,"Event cannot be empty"
+    return True, "Event is Valid"
+
     
 def getslots(intent_request):
     return intent_request['currentIntent']['slots']
@@ -90,7 +124,7 @@ def delegate(session_attributes, slots):
     
 #--------------Main Lambda functions for validation and Event Creation-----#
 
-def ValdidateCreateEvent(Date,Time,Event):
+def ValidateCreateEvent(Date,Time,Event):
     #if Date does exist
         #if Date is not valid return false validation result
         #if Date is less than todays date return a false validation resulted
@@ -120,20 +154,31 @@ def ValdidateCreateEvent(Date,Time,Event):
 
 def createEvent(intent_request):
     #use a get slots helper function to get data from the slots
-    time = getslots()['Time']
-    date = getslots()['Date']
-    event = getslots()['Event']
+    time = getslots(intent_request)['Time']
+    date = getslots(intent_request)['Date']
+    event = getslots(intent_request)['Event']
     
     #get all the slots as Dict for future validation
+    slots = getslots(intent_request)
     # if it is a Dialog code hook in intent request then
         #Call helper function to validate all the slots
-        
-    #if validated result is False:
-        #set violated slot value to False
-        #make a call for elicit slot
-        
+    if intent_request['currentIntent']['invocationSource'] == "DialogCodeHook":
+        validation_result = ValidateCreateEvent(date,time,event)
+           #if validated result is False:
+            #set violated slot value to False
+            #make a call for elicit slot
+        if validation_result['isValid'] is False:
+            slots[validation_result['violatedSlot']] = None
+            elicit_slot(intent_request['sessionAttributes'],
+                        intent_request['currentIntent']['Name'],
+                        slots,
+                        validation_result['violatedSlot'],
+                        validation_result['message']
+                        )
+                        
+    output_session_attributes = intent_request['sessionAttributes'] if intent_request['sessionAttributes'] is not None else {}
     #return a delegate. Delegate should be for the final bot action for validation. Then it will be send for fufillmnent
-    return delegate()
+    return delegate(output_session_attributes,getslots(intent_request))
     
 def dispatch(intent_request):
     if intent_request['currentIntent']['name'] == "CreateEvent":

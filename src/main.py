@@ -16,13 +16,12 @@ def buildValidationresult(result,violatedSlot, message):
         return{
             "isValid": result,
             "violatedSlot": violatedSlot,
-            "message": message
+            "message": {'contentType': 'PlainText', 'content': message}
         }
     
     return {
         "isValid": result,
-        "violatedSlot": None,
-        "message": message
+        "message": {'contentType': 'PlainText', 'content': message}
     }
 
 
@@ -37,11 +36,11 @@ def CheckDate(Date):
         datetime_object = isoparse(Date)
     except ValueError:
         logger.error("Value Error is called Date is invalid")
-        return False,"Date is Invalid. Please enter a Valid Date" 
+        return False, 'Date is Invalid. Please enter a Valid Date' 
     
     if datetime_object.date() < datetime.today().date():
         logger.error("Date is in the past")
-        return False ,"Date should be before. Re enter a event date that is Today or after "
+        return False , 'Date should be before. Re enter a event date that is Today or after'
     
     return True,"Valid Date Given"
 
@@ -51,9 +50,13 @@ def CheckTime(Date,time):
     #Check if Date is valid
     #if both are valid compare it todays time and
     datetime_object = None
+    logger.info(Date)
     try:
-        datetime_object = parse(Date + " " + time)
-        logger.info(datetime_object)
+        if Date is not None:
+            datetime_object = parse(Date)
+            logger.info(datetime_object)
+        else:
+            raise ("Date error")
     except ValueError:
         logger.error("Invalid time was given. Re Enter a valid time")
         return False, "Re-enter Valid time"
@@ -130,20 +133,22 @@ def ValidateCreateEvent(Date,Time,Event):
         #if Date is less than todays date return a false validation resulted
     if Date is not None:
         validation_result,message = CheckDate(Date)
+        logger.info(message)
+
         if not validation_result:
             return buildValidationresult(False,'Date',message)
         
      #if time does exist
         #if time is not valid return a false validation result
         #if Date is Today and Time is less than now return a flase validation result
-    if time is not None:
+    if Time is not None:
         validation_result,message = CheckTime(Date,time)
         if not validation_result:
             return buildValidationresult(False,'Time',message)
 
     #if event is empty
         # return a false validation result
-    if event is "":
+    if Event == "":
         validation_result,message = CheckEvent(Event)
         if not validation_result:
             return buildValidationresult(False,'Event',message)
@@ -162,15 +167,16 @@ def createEvent(intent_request):
     slots = getslots(intent_request)
     # if it is a Dialog code hook in intent request then
         #Call helper function to validate all the slots
-    if intent_request['currentIntent']['invocationSource'] == "DialogCodeHook":
+    if intent_request['invocationSource'] == 'DialogCodeHook':
         validation_result = ValidateCreateEvent(date,time,event)
            #if validated result is False:
             #set violated slot value to False
             #make a call for elicit slot
         if validation_result['isValid'] is False:
             slots[validation_result['violatedSlot']] = None
+            logger.info(validation_result['message'])
             elicit_slot(intent_request['sessionAttributes'],
-                        intent_request['currentIntent']['Name'],
+                        intent_request['currentIntent']['name'],
                         slots,
                         validation_result['violatedSlot'],
                         validation_result['message']
@@ -183,7 +189,7 @@ def createEvent(intent_request):
 def dispatch(intent_request):
     if intent_request['currentIntent']['name'] == "CreateEvent":
         logger.info("CreateEvent intent recieved")
-        return CreateEvent(intent_request)
+        return createEvent(intent_request)
     raise Exception(intent_request + "is not supported")
 
 def lambda_handler(event, context):

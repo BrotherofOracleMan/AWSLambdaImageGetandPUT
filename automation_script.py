@@ -12,7 +12,7 @@ upload_lambda = "aws lambda update-function-code --function-name lambdaProjectfu
 
 run_lambda = "aws lambda invoke \
     --function-name lambdaProjectfunction \
-    --payload '{ \"name\": \"Bob\" }' \
+    --payload '{ \"Body\": \"PUT Description:My cat is beautiful.\", \"fromNumber\" : \"6266241275\", \"image\": \"http://imgur.com\", \"numMedia\" : \"1\" }' \
     response.json"
 
 

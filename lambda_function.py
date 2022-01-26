@@ -1,7 +1,6 @@
-from dis import Instruction
-from pickle import PUT
 import boto3
-import json
+import requests
+import shutil
 
 def lambda_handler(event, context):
 	#unparse event from JSON to dictionary. This dictionary will be in the form of Body, Number , Image, and number of Media.
@@ -21,15 +20,18 @@ def lambda_handler(event, context):
 
 	bodyvalues= body.split()
 	instruction = str(bodyvalues[0]).strip()
-	description = " ".join([bodyvalues[i] for i in range(2,len(bodyvalues)) if bodyvalues[i] != "."])
+	description = " ".join([bodyvalues[i] for i in range(1,len(bodyvalues)) if bodyvalues[i] != "."])
+	filename = image_url.split("/")[-1]
 
-	#Lex
+	
 	if instruction != "PUT" and instruction != "GET":
 		return {'Error':'Please put an valid instruction (PUT,GET)'}
 	
 	if numMedia > 1 or numMedia == 0:
 		return {'Error':'Please insert a single image'}
 
+	#AWS resources
+	s3 = boto3.resource('s3')
 	"""
 	PUT
 	We should try to put an Image into s3 and dynamodb. 
@@ -40,8 +42,23 @@ def lambda_handler(event, context):
 	- Return an reciept back to the User       
 	"""
 	if instruction == "PUT":
-		print("Executing PUT instruction")
-
+		print("Executing PUT function")
+		
+		r = requests.get(image_url,stream=True)
+		
+		if r.status_code == 200:
+			print("Successful Image Download")
+			#ToDo: Need to find a way to upload to bucket through image url
+			"""
+			r.raw.decode_content = True
+			#note lambda storage is only good for as long as the lambda executes
+			with open(filename,'wb') as f:
+				shutil.copyfileobj(r.raw, f)
+			s3.meta.client.upload_file(filename, 'projectbucketimageupload', filename)
+			"""
+		else:
+			return {'Status':'Failed to retrieve Image'}
+		
 	"""
 	GET
 	We should Try to query the DynamoDB database with the Title, and then description.

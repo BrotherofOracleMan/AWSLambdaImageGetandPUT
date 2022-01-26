@@ -1,8 +1,8 @@
 """
 This is testing script for the first part of my aws project.
 """
-
 import os
+import time
 import subprocess
 from zipfile import ZipFile
 
@@ -12,7 +12,7 @@ upload_lambda = "aws lambda update-function-code --function-name lambdaProjectfu
 
 run_lambda = "aws lambda invoke \
     --function-name lambdaProjectfunction \
-    --payload '{ \"Body\": \"PUT Description:My cat is beautiful.\", \"fromNumber\" : \"6266241275\", \"image\": \"http://imgur.com\", \"numMedia\" : \"1\" }' \
+    --payload '{ \"Body\": \"PUT My cat is beautiful.\", \"fromNumber\" : \"6266241275\", \"image\": \"https://s3.amazonaws.com/mturk-s3-demo/abbey.jpg\", \"numMedia\" : \"1\" }' \
     response.json"
 
 
@@ -22,6 +22,8 @@ if os.path.exists("lambda_function.py") == True:
     #create zipfile
     with ZipFile('function.zip','w') as myzip:
         myzip.write('lambda_function.py')
+        myzip.write('bin')
+        myzip.write('idna')
     #upload to AWS
     upload_process = subprocess.run(upload_lambda,shell=True,capture_output=True,text=True)
     print(upload_process.stdout)
@@ -32,9 +34,15 @@ else:
 run_lambda = subprocess.run(run_lambda,shell=True,capture_output=True,text=True)
 print(run_lambda.stdout)
 
+print("Program is Entering sleep so lambda can upload to cloud watch")
+time.sleep(10)
+
 #get most recent logs
 p1 = subprocess.run(logval,shell=True,capture_output=True,text=True)
 log_stream_val = p1.stdout.strip("[\n]").replace('"',"\'")
 
+print(log_stream_val)
+
+#need to add wait forso that p2 needs to wait for p1 to finish 
 p2 = subprocess.run(getlog + log_stream_val,shell=True,capture_output=True,text=True)
 print(p2.stdout)

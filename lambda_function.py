@@ -49,13 +49,6 @@ def lambda_handler(event, context):
 		if r.status_code == 200:
 			print("Successful Image Download")
 			#ToDo: Need to find a way to upload to bucket through image url
-			"""
-			r.raw.decode_content = True
-			#note lambda storage is only good for as long as the lambda executes
-			with open(filename,'wb') as f:
-				shutil.copyfileobj(r.raw, f)
-			s3.meta.client.upload_file(filename, 'projectbucketimageupload', filename)
-			"""
 		else:
 			return {'Status':'Failed to retrieve Image'}
 		

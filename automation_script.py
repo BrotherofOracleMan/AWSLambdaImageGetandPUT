@@ -20,10 +20,9 @@ run_lambda = "aws lambda invoke \
 if os.path.exists("lambda_function.py") == True:
     print("lambda function python file exists and uploading to AWS")
     #create zipfile
+    #ToDo: add functionality to add folders along with thier files to zip
     with ZipFile('function.zip','w') as myzip:
         myzip.write('lambda_function.py')
-        myzip.write('bin')
-        myzip.write('idna')
     #upload to AWS
     upload_process = subprocess.run(upload_lambda,shell=True,capture_output=True,text=True)
     print(upload_process.stdout)

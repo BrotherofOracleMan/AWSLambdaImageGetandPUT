@@ -12,7 +12,7 @@ def lambda_handler(event, context):
 	Description (Get from 2nd word to end with period)
 	Single Image
 	"""
-
+	
 	body = event['Body']
 	image_url = event['image']
 	phone_number = event['fromNumber']

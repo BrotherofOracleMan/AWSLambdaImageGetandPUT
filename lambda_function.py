@@ -2,17 +2,27 @@ import boto3
 import requests
 import shutil
 
+"""
+	#this function should generate a public url if succuessful, other wise generate a exception
+
+"""
 def lambda_handler(event, context):
 	#unparse event from JSON to dictionary. This dictionary will be in the form of Body, Number , Image, and number of Media.
 	#check the body 
 	
+	#AWS resources and other variables
+	#session initiates aws connection
+	#resource grabs the data
+	aws_session = boto3.Session()
+	s3 = aws_session.resource('s3')
+
 	"""
 	Do verification here and do parsing here
 	Instruction (Get from 1st word) (PUT or GET)
 	Description (Get from 2nd word to end with period)
 	Single Image
 	"""
-	
+
 	body = event['Body']
 	image_url = event['image']
 	phone_number = event['fromNumber']
@@ -30,8 +40,7 @@ def lambda_handler(event, context):
 	if numMedia > 1 or numMedia == 0:
 		return {'Error':'Please insert a single image'}
 
-	#AWS resources
-	s3 = boto3.resource('s3')
+
 	"""
 	PUT
 	We should try to put an Image into s3 and dynamodb. 
@@ -43,15 +52,11 @@ def lambda_handler(event, context):
 	"""
 	if instruction == "PUT":
 		print("Executing PUT function")
-		
 		r = requests.get(image_url,stream=True)
-		
-		if r.status_code == 200:
-			print("Successful Image Download")
-			#ToDo: Need to find a way to upload to bucket through image url
-		else:
-			return {'Status':'Failed to retrieve Image'}
-		
+		#upload_to_S3(aws_session,r.raw,filename)
+		s3_bucket = s3.Bucket("projectbucketimageupload")
+		s3_bucket.upload_fileobj(r.raw,"filename")
+
 	"""
 	GET
 	We should Try to query the DynamoDB database with the Title, and then description.

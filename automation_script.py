@@ -5,6 +5,7 @@ import os
 import time
 import subprocess
 import zipfile
+import logging
 
 """
 Global Constants
@@ -74,7 +75,7 @@ def main():
     print(run_lambda_process.stdout)
 
     print("Program is Entering sleep so lambda can upload to cloud watch")
-    time.sleep(10)
+    time.sleep(15)
 
     #get most recent logs
     log_val_process = subprocess.run(logval,shell=True,capture_output=True,text=True)

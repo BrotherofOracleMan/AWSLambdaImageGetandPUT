@@ -1,4 +1,3 @@
-from asyncio.log import logger
 import boto3
 import requests
 import logging
@@ -28,7 +27,7 @@ def getItem(key,dynamodb=None):
     finally:
         return response
 
-def update_item(search_key,new_file_name,newDescription,newphoneNumber,newpublicURL,dynamo_db=None):
+def update_item(search_key,newDescription,newphoneNumber,newpublicURL,dynamo_db=None):
     if not dynamo_db:
         dynamo_db = boto3.resource('dynamodb')
     db_table = dynamo_db.Table("projectTable")
@@ -67,7 +66,7 @@ def lambda_handler(event, context):
 	aws_session = boto3.Session()
 	s3 = aws_session.resource('s3')
 	s3_bucket = s3.Bucket("projectbucketimageupload")
-
+	dynamodb = boto3.resource('dynamodb')
 	"""
 	Logger setup
 	"""
@@ -108,7 +107,6 @@ def lambda_handler(event, context):
 	- Return an reciept back to the User       
 	"""
 	if instruction == "PUT":
-		logger.info("PUT is called. Inserting image into s3 bucket and DynamoDb database")
 		try:
 			r = requests.get(image_url,stream=True)
 			#upload_to_S3(aws_session,r.raw,filename)
@@ -116,6 +114,23 @@ def lambda_handler(event, context):
 			logger.info("Successful upload to s3")
 			#generate an S3 URL
 			s3_url = "https://projectbucketimageupload.s3.us-west-2.amazonaws.com/" + filename
+			filename_search_key = {"filename": filename}
+			new_item_key = {"filename":filename,"Description": description,"phoneNumber":phone_number,"publicURL": s3_url}
+			if getItem(key=filename_search_key) != None:
+				logger.info("Updating entry in DynamoDB DataBase")
+				#do an update
+				response = update_item(filename_search_key,description,phone_number,s3_url)
+				if response == None:
+					logger.error("An exception occured when trying to update a item in the DB")
+				else:
+					return {'Status': 'Image Succesfully Updated'}
+			else:
+				response = put_item(new_key=new_item_key)
+				logger.info("Putting Entry into DynamoDB Database")
+				if response == None:
+					logger.error("An exception occured when trying to insert a new item into the DB")
+				else:
+					return {'Status': 'Succesfully created new item'}
 		except Exception as error:
 			logger.error("An exception occured while inserting into S3 bucket and DB: {} ".format(error))
 		finally:
@@ -130,5 +145,4 @@ def lambda_handler(event, context):
 		logger.info("Executing GET instruction")
 
 	logger.info("Lambda is done executing")
-	print("End of function")
 	return {'Status': 'Lambda is finished'}

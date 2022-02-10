@@ -137,12 +137,15 @@ def lambda_handler(event, context):
 			logger.info("PUT function is Done")
 	"""
 	GET
-	We should Try to query the DynamoDB database with the Title, and then description.
-	If we cannot find it, return Image not Found
+	We should Try to query the DynamoDB database with the Title,.
+	If we cannot find it, return Image not Foun,
 	If we find it return a fancier image through the api gateway
 	"""
 	if instruction == "GET":
-		logger.info("Executing GET instruction")
+		if getItem(key={"filename":filename}):
+			return {'Status':'file found'}
+		else:
+			return {'Status':'file found'}
 
 	logger.info("Lambda is done executing")
 	return {'Status': 'Lambda is finished'}

@@ -91,11 +91,11 @@ def lambda_handler(event, context):
 	
 	if instruction != "PUT" and instruction != "GET":
 		logger.error("Valid Instruction outside of PUT and GET was recieved")
-		return {'Error':'Please put an valid instruction (PUT,GET)'}
+		return "Please put an valid instruction (PUT,GET)"
 	
 	if numMedia > 1 or numMedia == 0:
 		logger.error("Number of Media is above 1 or is set to zero")
-		return {'Error':'Please insert a single image'}
+		return "Error':'Please insert a single image"
 
 	"""
 	PUT
@@ -123,14 +123,14 @@ def lambda_handler(event, context):
 				if response == None:
 					logger.error("An exception occured when trying to update a item in the DB")
 				else:
-					return {'Status': 'Image Succesfully Updated'}
-			else:
+					return f"Updated Item with these details \n filename: {filename} \n Description: {description} \n From Phone Number: {phone_number} \n Image: <Media>{s3_url}</Media>"
+			else: 
 				response = put_item(new_key=new_item_key)
 				logger.info("Putting Entry into DynamoDB Database")
 				if response == None:
 					logger.error("An exception occured when trying to insert a new item into the DB")
 				else:
-					return {'Status': 'Succesfully created new item'}
+					return f"Created new Item with these details \n filename: {filename} \n Description: {description} \n From Phone Number: {phone_number} \n Image: <Media>{s3_url}</Media>"
 		except Exception as error:
 			logger.error("An exception occured while inserting into S3 bucket and DB: {} ".format(error))
 		finally:
@@ -142,10 +142,15 @@ def lambda_handler(event, context):
 	If we find it return a fancier image through the api gateway
 	"""
 	if instruction == "GET":
-		if getItem(key={"filename":filename}):
-			return {'Status':'file found'}
+		response = getItem(key={"filename":filename})
+		if response != None:
+			filename = response['Item']['filename']
+			description = response['Item']['Description']
+			phone_number =  response['Item']['phoneNumber']
+			Image_url = response['Item']['publicURL']
+			return f"Entry was found in database with these details \n filename:{filename} \n Description: {description} \n From Phone Number: {phone_number} \n Image: <Media>{Image_url}</Media>"
 		else:
-			return {'Status':'file found'}
+			return f"file was not found"
 
 	logger.info("Lambda is done executing")
 	return {'Status': 'Lambda is finished'}

@@ -1,3 +1,4 @@
+from dis import Instruction
 import boto3
 import requests
 import logging
@@ -78,22 +79,28 @@ def lambda_handler(event, context):
 	Single Image
 	"""
 	logger.info("lambda is invoked")
-
-	body = event['Body']
+	logger.info(event)
+	body = event['body']
 	image_url = event['image']
 	phone_number = event['fromNumber']
 	numMedia = int(event['numMedia'])
 
 	bodyvalues= body.split()
 	instruction = str(bodyvalues[0]).strip()
-	description = " ".join([bodyvalues[i] for i in range(1,len(bodyvalues)) if bodyvalues[i] != "."])
-	filename = image_url.split("/")[-1]
+	logger.info(instruction)
+
+	if instruction == "GET":
+		filename = bodyvalues[1]
+		logger.info(filename)	
+	else:
+		description = " ".join([bodyvalues[i] for i in range(1,len(bodyvalues)) if bodyvalues[i] != "."])
+		filename = image_url.split("/")[-1]
 	
 	if instruction != "PUT" and instruction != "GET":
 		logger.error("Valid Instruction outside of PUT and GET was recieved")
 		return "Please put an valid instruction (PUT,GET)"
 	
-	if numMedia > 1 or numMedia == 0:
+	if (numMedia > 1 or numMedia == 0) and instruction == "PUT":
 		logger.error("Number of Media is above 1 or is set to zero")
 		return "Error':'Please insert a single image"
 
@@ -148,7 +155,7 @@ def lambda_handler(event, context):
 			description = response['Item']['Description']
 			phone_number =  response['Item']['phoneNumber']
 			Image_url = response['Item']['publicURL']
-			return f"Entry was found in database with these details \n filename:{filename} \n Description: {description} \n From Phone Number: {phone_number} \n Image: <Media>{Image_url}</Media>"
+			return f"<Response><Message><Body>Entry was found in database with these details \n filename:{filename} \n Description: {description} \n From Phone Number: {phone_number} \n ImageURL: </Body><Media>{Image_url}</Media></Message></Response>"
 		else:
 			return f"file was not found"
 

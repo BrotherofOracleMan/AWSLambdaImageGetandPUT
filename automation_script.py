@@ -15,7 +15,7 @@ getlog = "aws logs get-log-events --log-group-name '/aws/lambda/lambdaProjectfun
 upload_lambda = "aws lambda update-function-code --function-name lambdaProjectfunction --zip-file fileb://function.zip"
 run_lambda = "aws lambda invoke \
         --function-name lambdaProjectfunction \
-        --payload '{ \"Body\": \"PUT My cat is beautiful.\", \"fromNumber\" : \"6266241275\", \"image\": \"https://s3.amazonaws.com/mturk-s3-demo/abbey.jpg\", \"numMedia\" : \"1\" }' \
+        --payload '{ \"body\": \"PUT My cat is beautiful.\", \"fromNumber\" : \"6266241275\", \"image\": \"https://s3.amazonaws.com/mturk-s3-demo/abbey.jpg\", \"numMedia\" : \"1\" }' \
         response.json"
 
 file_content = [

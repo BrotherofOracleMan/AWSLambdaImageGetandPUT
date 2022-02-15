@@ -67,7 +67,6 @@ def lambda_handler(event, context):
 	aws_session = boto3.Session()
 	s3 = aws_session.resource('s3')
 	s3_bucket = s3.Bucket("projectbucketimageupload")
-	dynamodb = boto3.resource('dynamodb')
 	"""
 	Logger setup
 	"""
@@ -91,18 +90,20 @@ def lambda_handler(event, context):
 
 	if instruction == "GET":
 		filename = bodyvalues[1]
-		logger.info(filename)	
 	else:
-		description = " ".join([bodyvalues[i] for i in range(1,len(bodyvalues)) if bodyvalues[i] != "."])
-		filename = image_url.split("/")[-1]
-	
+		filename = bodyvalues[1]
+		if bodyvalues[2] != ".":
+			return "<Response><Message><Body>Please put a space and dot after image name to indicate name of filename</Body></Message></Response>"
+		description = " ".join([bodyvalues[i] for i in range(3,len(bodyvalues)) if bodyvalues[i] != "."])
+		logger.info(f"Image_url:{image_url}")
+
 	if instruction != "PUT" and instruction != "GET":
 		logger.error("Valid Instruction outside of PUT and GET was recieved")
-		return "Please put an valid instruction (PUT,GET)"
+		return f"<Response><Message><Body>Please put an valid instruction (PUT,GET)</Body></Message></Response>"
 	
 	if (numMedia > 1 or numMedia == 0) and instruction == "PUT":
 		logger.error("Number of Media is above 1 or is set to zero")
-		return "Error':'Please insert a single image"
+		return f"<Response><Message><Body>Please insert a single image</Body></Message></Response>"
 
 	"""
 	PUT
@@ -123,21 +124,21 @@ def lambda_handler(event, context):
 			s3_url = "https://projectbucketimageupload.s3.us-west-2.amazonaws.com/" + filename
 			filename_search_key = {"filename": filename}
 			new_item_key = {"filename":filename,"Description": description,"phoneNumber":phone_number,"publicURL": s3_url}
-			if getItem(key=filename_search_key) != None:
+			if getItem(key=filename_search_key)!= None:
 				logger.info("Updating entry in DynamoDB DataBase")
 				#do an update
 				response = update_item(filename_search_key,description,phone_number,s3_url)
 				if response == None:
 					logger.error("An exception occured when trying to update a item in the DB")
 				else:
-					return f"Updated Item with these details \n filename: {filename} \n Description: {description} \n From Phone Number: {phone_number} \n Image: <Media>{s3_url}</Media>"
+					return f"<Response><Message><Body>Updated Item with these details \n filename: {filename} \n Description: {description} \n From Phone Number: {phone_number} \n ImageURL:{s3_url}</Body></Message></Response>"
 			else: 
 				response = put_item(new_key=new_item_key)
 				logger.info("Putting Entry into DynamoDB Database")
 				if response == None:
 					logger.error("An exception occured when trying to insert a new item into the DB")
 				else:
-					return f"Created new Item with these details \n filename: {filename} \n Description: {description} \n From Phone Number: {phone_number} \n Image: <Media>{s3_url}</Media>"
+					return f"<Response><Message><Body>Created new Item with these details \n filename: {filename} \n Description: {description} \n From Phone Number: {phone_number} \n ImageURL:{s3_url}</Body></Message></Response>"
 		except Exception as error:
 			logger.error("An exception occured while inserting into S3 bucket and DB: {} ".format(error))
 		finally:
@@ -150,14 +151,15 @@ def lambda_handler(event, context):
 	"""
 	if instruction == "GET":
 		response = getItem(key={"filename":filename})
-		if response != None:
+		if 'Item' in response.keys():
+			logger.info(response)
 			filename = response['Item']['filename']
 			description = response['Item']['Description']
 			phone_number =  response['Item']['phoneNumber']
 			Image_url = response['Item']['publicURL']
-			return f"<Response><Message><Body>Entry was found in database with these details \n filename:{filename} \n Description: {description} \n From Phone Number: {phone_number} \n ImageURL: </Body><Media>{Image_url}</Media></Message></Response>"
+			return f"<Response><Message><Body>Entry was found in database with these details \n filename:{filename} \n Description: {description} \n From Phone Number: {phone_number} \n ImageURL:{Image_url}</Body></Message></Response>"
 		else:
-			return f"file was not found"
+			return f"<Response><Message><Body>File was not found</Body></Message></Response>"
 
 	logger.info("Lambda is done executing")
 	return {'Status': 'Lambda is finished'}

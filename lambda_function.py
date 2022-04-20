@@ -118,27 +118,27 @@ def lambda_handler(event, context):
 		try:
 			r = requests.get(image_url,stream=True)
 			#upload_to_S3(aws_session,r.raw,filename)
-			s3_bucket.upload_fileobj(r.raw,filename)
+			s3_bucket.upload_fileobj(r.raw,filename,ExtraArgs = {'ContentType': 'image/jpeg'})
 			logger.info("Successful upload to s3")
 			#generate an S3 URL
 			s3_url = "https://projectbucketimageupload.s3.us-west-2.amazonaws.com/" + filename
 			filename_search_key = {"filename": filename}
 			new_item_key = {"filename":filename,"Description": description,"phoneNumber":phone_number,"publicURL": s3_url}
-			if getItem(key=filename_search_key)!= None:
+			if 'Item' in getItem(key=filename_search_key):
 				logger.info("Updating entry in DynamoDB DataBase")
 				#do an update
 				response = update_item(filename_search_key,description,phone_number,s3_url)
 				if response == None:
 					logger.error("An exception occured when trying to update a item in the DB")
 				else:
-					return f"<Response><Message><Body>Updated Item with these details \n filename: {filename} \n Description: {description} \n From Phone Number: {phone_number} \n ImageURL:{s3_url}</Body></Message></Response>"
+					return f"<Response><Message><Body>Updated Item with these details \n filename: {filename} \n Description: {description} \n From Phone Number: {phone_number} </Body>\n <Media> {s3_url}</Media></Message></Response>"
 			else: 
 				response = put_item(new_key=new_item_key)
 				logger.info("Putting Entry into DynamoDB Database")
 				if response == None:
 					logger.error("An exception occured when trying to insert a new item into the DB")
 				else:
-					return f"<Response><Message><Body>Created new Item with these details \n filename: {filename} \n Description: {description} \n From Phone Number: {phone_number} \n ImageURL:{s3_url}</Body></Message></Response>"
+					return f"<Response><Message><Body>Created new Item with these details \n filename: {filename} \n Description: {description} \n From Phone Number: {phone_number} </Body>\n <Media>{s3_url}</Media></Message></Response>"
 		except Exception as error:
 			logger.error("An exception occured while inserting into S3 bucket and DB: {} ".format(error))
 		finally:
@@ -157,7 +157,8 @@ def lambda_handler(event, context):
 			description = response['Item']['Description']
 			phone_number =  response['Item']['phoneNumber']
 			Image_url = response['Item']['publicURL']
-			return f"<Response><Message><Body>Entry was found in database with these details \n filename:{filename} \n Description: {description} \n From Phone Number: {phone_number} \n ImageURL:{Image_url}</Body></Message></Response>"
+			#we can try down
+			return f"<Response><Message><Body>Entry was found in database with these details \n filename:{filename} \n Description: {description} \n From Phone Number: {phone_number} </Body>\n <Media> {Image_url}</Media></Message></Response>"
 		else:
 			return f"<Response><Message><Body>File was not found</Body></Message></Response>"
 

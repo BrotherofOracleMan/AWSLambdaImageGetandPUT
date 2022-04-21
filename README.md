@@ -10,11 +10,19 @@ Please take note of spaces when sending messages to your twilio number
 
 Creation(Use PUT cmd)
 
+![Screenshot](create_1.png)
+
+![Screenshot](create_2.png)
 
 Getting the Image(Use GET cmd)
 
+![Screenshot](GET.png)
+
 Updating the Image (USE PUT cmd)
 
+![Screenshot](Update_1.png)
+
+![Screenshot](Update_2.png)
 
 
 Architecture diagram 

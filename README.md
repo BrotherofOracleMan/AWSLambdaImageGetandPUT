@@ -54,11 +54,11 @@ Integration request
 
 ![Screenshot](images/dynamodb.png)
 
-![Screenshot](images/dynamodb_2.png)
+![Screenshot](images/dynamodb_2.jpg)
 
 #### S3
 
-![Screenshot](images/s3.jpg)
+![Screenshot](images/s3.png)
 
 4) Create a twilio number and point the endpoints to the api gateway. 
 
@@ -66,6 +66,7 @@ Integration request
 
 
 6) Set the API Gateway fuinction to call the lambda function you created.
-7) Upload the code() using aws cli to your lambda function. This is also shown in the automation script I created in python.
-8) Go ahead and sending messages shown in the Examples of Usage section.
+7) Upload the code() using aws cli to your lambda function. This is also shown in the automation script I created in python. Note: You might need to create a requirements.txt to download packages manually and then upload it to AWS Lambda
+
+9) Go ahead and sending messages shown in the Examples of Usage section.
 

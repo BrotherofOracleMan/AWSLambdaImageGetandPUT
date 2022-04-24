@@ -33,5 +33,11 @@ Requirements
 * AWS account
 * Boto3
 
-Guide 
+Guide For use of code 
+1) Please clone the repository.
+2) Create a lambda function, dynamodb Table, s3 bucket and a api gateway endpoint.
+3) Create a twilio number and point the endpoints to the api gateway. 
+4) Set the API Gateway fuinction to call the lambda function you created.
+5) Upload the code() using aws cli to your lambda function. This is also shown in the automation script I created in python.
+6) Go ahead and sending messages shown in the Examples of Usage section.
 

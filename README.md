@@ -66,7 +66,7 @@ Integration request
 
 
 6) Set the API Gateway fuinction to call the lambda function you created.
-7) Upload the code() using aws cli to your lambda function. This is also shown in the automation script I created in python. Note: You might need to create a requirements.txt to download packages manually and then upload it to AWS Lambda
+7) Upload the code using aws cli to your lambda function. This is also shown in the automation script I created in python. Note: You might need to create a requirements.txt to download packages manually and then upload it to AWS Lambda
 
 9) Go ahead and sending messages shown in the Examples of Usage section.
 
